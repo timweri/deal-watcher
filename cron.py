@@ -2,6 +2,7 @@ from crontab import CronTab
 import time
 
 cron = CronTab(user='timweri')
+cron.remove_all()
 fetch_reddit_job = cron.new(command="python fetch_reddit.py")
 fetch_reddit_job.minute.every(1)
 
