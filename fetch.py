@@ -3,7 +3,7 @@ import time
 import json
 from notify import notify
 
-TIME_WINDOW = 200 #s
+TIME_WINDOW = 86400 #s
 
 res = requests.get("https://www.reddit.com/r/bapcsalescanada/new.json", headers = {'User-agent': 'your bot 0.1'})
 

@@ -1,7 +1,7 @@
 import json
 import time
 
-TIME_WINDOW = 1000
+TIME_WINDOW = 86400
 
 try:
     with open('./cache.json', 'r') as f:
