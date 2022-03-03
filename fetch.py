@@ -10,6 +10,8 @@ res = requests.get("https://www.reddit.com/r/bapcsalescanada/new.json", headers 
 res.raise_for_status()
 res = res.json()
 
+os.environ['TZ'] = 'EST'
+
 try:
     with open('./cache.json', 'r') as f:
         cache = json.load(f)
@@ -24,11 +26,13 @@ for post in res['data']['children']:
         continue
     cache[post_id] = post_created
 
+    time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_created))
+
     title = post_data["title"]
     permalink = post_data["permalink"]
     reddit_link = f"https://reddit.com{permalink}"
 
-    message = f"{title}\n\n{reddit_link}"
+    message = f"{time_str}: {title}\n\n{reddit_link}"
 
     if "url" in post_data:
         message += "\n\n" + post_data["url"]

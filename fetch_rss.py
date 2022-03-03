@@ -22,11 +22,12 @@ for entry in feed.entries:
         continue
     cache[entry.title] = published_time
 
-    message = entry.title
+    time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(published_time))
+
+    message = f"{time_str}: {entry.title}"
     message += "\n\n"
     message += entry.link
     message += "\n\n"
-    message += entry.summary
 
     notify(message)
 
