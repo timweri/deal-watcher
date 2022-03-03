@@ -3,7 +3,7 @@ import time
 import json
 import feedparser
 import os
-# from notify import notify
+from notify import notify
 
 os.environ['TZ'] = 'EST'
 TIME_WINDOW = 86400 #s
