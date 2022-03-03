@@ -4,9 +4,11 @@ import json
 import feedparser
 import os
 from notify import notify
+from dotenv import load_dotenv
+load_dotenv()
 
 os.environ['TZ'] = 'EST'
-TIME_WINDOW = int(os.environ['TIME_WINDOW'])
+TIME_WINDOW = int(os.getenv('TIME_WINDOW'))
 
 feed = feedparser.parse("https://forums.redflagdeals.com/feed/forum/9")
 

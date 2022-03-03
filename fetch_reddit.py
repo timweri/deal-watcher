@@ -3,8 +3,11 @@ import time
 import json
 import os
 from notify import notify
+from dotenv import load_dotenv
+load_dotenv()
 
-TIME_WINDOW = int(os.environ['TIME_WINDOW'])
+os.environ['TZ'] = 'EST'
+TIME_WINDOW = int(os.getenv('TIME_WINDOW'))
 
 bapcsalescanada_url = "https://www.reddit.com/r/bapcsalescanada/new.json"
 canadianhardwareswap_url = "https://www.reddit.com/r/CanadianHardwareSwap/new.json"
