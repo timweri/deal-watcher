@@ -6,7 +6,7 @@ import os
 from notify import notify
 
 os.environ['TZ'] = 'EST'
-TIME_WINDOW = 86400 #s
+TIME_WINDOW = int(os.environ['TIME_WINDOW'])
 
 feed = feedparser.parse("https://forums.redflagdeals.com/feed/forum/9")
 

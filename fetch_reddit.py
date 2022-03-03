@@ -4,7 +4,7 @@ import json
 import os
 from notify import notify
 
-TIME_WINDOW = 86400 #s
+TIME_WINDOW = int(os.environ['TIME_WINDOW'])
 
 bapcsalescanada_url = "https://www.reddit.com/r/bapcsalescanada/new.json"
 canadianhardwareswap_url = "https://www.reddit.com/r/CanadianHardwareSwap/new.json"

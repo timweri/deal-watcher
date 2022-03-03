@@ -12,7 +12,7 @@ clear_job = cron.new(command="python clean.py")
 clear_job.minute.every(30)
 
 heartbeat_job = cron.new(command="python heartbeat.py")
-heartbeat_job.minute.every(5)
+heartbeat_job.hour.every(3)
 
 cron.write()
 for result in cron.run_scheduler():
