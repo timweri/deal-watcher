@@ -1,6 +1,8 @@
 import json
 import os
 import time
+from dotenv import load_dotenv
+load_dotenv()
 
 TIME_WINDOW = int(os.environ['TIME_WINDOW'])
 
