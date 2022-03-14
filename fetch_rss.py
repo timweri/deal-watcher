@@ -5,6 +5,7 @@ import feedparser
 import os
 from notify import notify
 from dotenv import load_dotenv
+from dateutil.parser import parse
 load_dotenv()
 
 os.environ['TZ'] = 'EST'
@@ -19,7 +20,8 @@ except FileNotFoundError:
     cache = {}
 
 for entry in feed.entries:
-    published_time = int(time.mktime(time.strptime(entry.published, '%Y-%m-%dT%H:%M:%S-05:00')))
+    published_time = parse(entry.published).timestamp()
+    # published_time = int(time.mktime(time.strptime(entry.published[:len(entry.published) - 6], '%Y-%m-%dT%H:%M:%S')))
     if published_time < time.time() - TIME_WINDOW or entry.title in cache:
         continue
     cache[entry.title] = published_time
