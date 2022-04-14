@@ -3,6 +3,7 @@ __pycache__/
 .env
 .venv
 cache.json
+cache-rss.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
