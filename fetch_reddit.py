@@ -32,7 +32,7 @@ for site in sites:
         post_data = post['data']
         post_id = post_data['id']
         post_created = post_data['created']
-        if post_created < time.time() - TIME_WINDOW or post_id in cache:
+        if post_created < time.localtime() - TIME_WINDOW or post_id in cache:
             continue
         cache[post_id] = post_created
 
