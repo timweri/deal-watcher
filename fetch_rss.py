@@ -8,32 +8,33 @@ from dotenv import load_dotenv
 from dateutil.parser import parse
 load_dotenv()
 
-os.environ['TZ'] = 'EST'
 TIME_WINDOW = int(os.getenv('TIME_WINDOW'))
 
-feed = feedparser.parse("https://forums.redflagdeals.com/feed/forum/9")
+sites = ["https://forums.redflagdeals.com/feed/forum/9"]
 
-try:
-    with open('./cache-rfd.json', 'r') as f:
-        cache = json.load(f)
-except FileNotFoundError:
-    cache = {}
+for site in sites:
+    try:
+        with open('./cache-rss.json', 'r') as f:
+            cache = json.load(f)
+    except FileNotFoundError:
+        cache = {}
 
-for entry in feed.entries:
-    published_time = parse(entry.published).timestamp()
-    # published_time = int(time.mktime(time.strptime(entry.published[:len(entry.published) - 6], '%Y-%m-%dT%H:%M:%S')))
-    if published_time < time.time() - TIME_WINDOW or entry.title in cache:
-        continue
-    cache[entry.title] = published_time
+    feed = feedparser.parse(site)
 
-    time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(published_time))
+    for entry in feed.entries:
+        published_time = parse(entry.published).timestamp()
+        if published_time < time.time() - TIME_WINDOW or entry.title in cache:
+            continue
+        cache[entry.title] = published_time
 
-    message = f"{time_str}: {entry.title}"
-    message += "\n\n"
-    message += entry.link
-    message += "\n\n"
+        time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(published_time))
 
-    notify(message)
+        message = f"{time_str}: {entry.title}"
+        message += "\n\n"
+        message += entry.link
+        message += "\n\n"
 
-with open('./cache-rfd.json', 'w') as outfile:
-    json.dump(cache, outfile)
+        notify(message)
+
+    with open('./cache-rfd.json', 'w') as outfile:
+        json.dump(cache, outfile)

@@ -6,7 +6,6 @@ from notify import notify
 from dotenv import load_dotenv
 load_dotenv()
 
-os.environ['TZ'] = 'EST'
 TIME_WINDOW = int(os.getenv('TIME_WINDOW'))
 
 bapcsalescanada_url = "https://www.reddit.com/r/bapcsalescanada/new.json"
