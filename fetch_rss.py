@@ -23,7 +23,7 @@ for site in sites:
 
     for entry in feed.entries:
         published_time = parse(entry.published).timestamp()
-        if published_time < time.localtime() - TIME_WINDOW or entry.title in cache:
+        if published_time < time.time() - TIME_WINDOW or entry.title in cache:
             continue
         cache[entry.title] = published_time
 
