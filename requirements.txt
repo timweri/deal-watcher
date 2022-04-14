@@ -4,4 +4,3 @@ python_crontab==2.6.0
 python_dateutil==2.8.2
 python_telegram_bot==13.11
 requests==2.27.1
-telegram==0.0.1
