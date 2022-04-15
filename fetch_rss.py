@@ -12,13 +12,13 @@ TIME_WINDOW = int(os.getenv('TIME_WINDOW'))
 
 sites = ["https://forums.redflagdeals.com/feed/forum/9"]
 
-for site in sites:
-    try:
-        with open('./cache-rss.json', 'r') as f:
-            cache = json.load(f)
-    except FileNotFoundError:
-        cache = {}
+try:
+    with open('./cache-rss.json', 'r') as f:
+        cache = json.load(f)
+except FileNotFoundError:
+    cache = {}
 
+for site in sites:
     feed = feedparser.parse(site)
 
     for entry in feed.entries:
@@ -36,5 +36,5 @@ for site in sites:
 
         notify(message)
 
-    with open('./cache-rfd.json', 'w') as outfile:
-        json.dump(cache, outfile)
+with open('./cache-rss.json', 'w') as outfile:
+    json.dump(cache, outfile)

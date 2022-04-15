@@ -13,19 +13,17 @@ canadianhardwareswap_url = "https://www.reddit.com/r/CanadianHardwareSwap/new.js
 
 sites = [bapcsalescanada_url, canadianhardwareswap_url]
 
+try:
+    with open('./cache.json', 'r') as f:
+        cache = json.load(f)
+except FileNotFoundError:
+    cache = {}
+
 for site in sites:
     res = requests.get(site, headers = {'User-agent': 'your bot 0.1'})
 
     res.raise_for_status()
     res = res.json()
-
-    os.environ['TZ'] = 'EST'
-
-    try:
-        with open('./cache.json', 'r') as f:
-            cache = json.load(f)
-    except FileNotFoundError:
-        cache = {}
 
     for post in res['data']['children']:
         post_data = post['data']
@@ -48,5 +46,5 @@ for site in sites:
         
         notify(message)
 
-    with open('./cache.json', 'w') as outfile:
-        json.dump(cache, outfile)
+with open('./cache.json', 'w') as outfile:
+    json.dump(cache, outfile)
