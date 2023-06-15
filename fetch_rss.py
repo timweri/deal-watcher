@@ -15,7 +15,7 @@ sites = ["https://forums.redflagdeals.com/feed/forum/9"]
 try:
     with open('./cache-rss.json', 'r') as f:
         cache = json.load(f)
-except FileNotFoundError:
+except:
     cache = {}
 
 for site in sites:
@@ -23,9 +23,9 @@ for site in sites:
 
     for entry in feed.entries:
         published_time = parse(entry.published).timestamp()
-        if published_time < time.time() - TIME_WINDOW or entry.title in cache:
+        if published_time < time.time() - TIME_WINDOW or entry.id in cache:
             continue
-        cache[entry.title] = published_time
+        cache[entry.id] = published_time
 
         time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(published_time))
 

@@ -6,7 +6,7 @@ cron.remove_all()
 fetch_reddit_job = cron.new(command="python fetch_reddit.py")
 fetch_reddit_job.minute.every(1)
 
-fetch_rss_job = cron.new(command="python fetch_rss.py")
+fetch_rss_job = cron.new(command="python fetch_rfd.py")
 fetch_rss_job.minute.every(5)
 
 clear_job = cron.new(command="python clean.py")
