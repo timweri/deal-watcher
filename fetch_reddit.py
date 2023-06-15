@@ -20,32 +20,35 @@ try:
 except:
     cache = {}
 
-for site in sites:
-    res = requests.get(site, headers = {'User-agent': 'your bot 0.1'})
-
-    res.raise_for_status()
-    res = res.json()
-
-    for post in res['data']['children']:
-        post_data = post['data']
-        post_id = post_data['id']
-        post_created = int(post_data['created'])
-        if post_created < time.time() - TIME_WINDOW or post_id in cache:
+try:
+    for site in sites:
+        res = requests.get(site, headers = {'User-agent': 'your bot 0.1'})
+        if not res:
             continue
-        cache[post_id] = post_created
 
-        time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_created))
+        res = res.json()
 
-        title = post_data["title"]
-        permalink = post_data["permalink"]
-        reddit_link = f"https://reddit.com{permalink}"
+        for post in res['data']['children']:
+            post_data = post['data']
+            post_id = post_data['id']
+            post_created = int(post_data['created'])
+            if post_created < time.time() - TIME_WINDOW or post_id in cache:
+                continue
+            cache[post_id] = post_created
 
-        message = f"{time_str}: {title}\n\n{reddit_link}"
+            time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_created))
 
-        if "url" in post_data:
-            message += "\n\n" + post_data["url"]
-        
-        notify(message)
+            title = post_data["title"]
+            permalink = post_data["permalink"]
+            reddit_link = f"https://reddit.com{permalink}"
 
-with open(FILE_NAME, 'w') as outfile:
-    json.dump(cache, outfile)
+            message = f"{time_str}: {title}\n\n{reddit_link}"
+
+            if "url" in post_data:
+                message += "\n\n" + post_data["url"]
+            
+            notify(message)
+finally:
+    with open(FILE_NAME, 'w') as outfile:
+        json.dump(cache, outfile)
+
