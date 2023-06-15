@@ -1,4 +1,4 @@
-# subreddit-watcher
+# deal-watcher
 
 Watch subreddits and RedFlagDeals RSS for new posts and notify you instantly via Telegram!
 For now, it is hardcoded to watch r/bapcsalescanada, r/CanadianHardwareSwap and RedFlagDeals Hot Deals Forum.
