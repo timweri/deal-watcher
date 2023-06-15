@@ -10,4 +10,4 @@ bot = telegram.Bot(token=ACCESS_TOKEN)
 
 def notify(message):
     bot.send_message(CHAT_ID, text=message)
-    time.sleep(1)
+    time.sleep(0.25)
