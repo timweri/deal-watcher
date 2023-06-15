@@ -46,7 +46,7 @@ try:
                 title_link_tag = thread_tag.select('a.topic_title_link')[0]
                 link = form_full_rfd_url(title_link_tag['href'])
 
-                title = thread_tag.select('h3.topictitle')[0].text.strip()
+                title = thread_tag.select('h3.topictitle')[0].text.strip().replace('\n', '')
 
                 message = f"{time_str}: {title}"
                 message += "\n\n"
