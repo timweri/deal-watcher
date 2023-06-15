@@ -37,23 +37,25 @@ try:
             if id in cache:
                 continue
 
-            # Extract publish time
-            post_time = dateutilparser.parse(thread_tag.select('span.first-post-time')[0].text).timestamp()
-            time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_time))
+            try:
+                # Extract publish time
+                post_time = dateutilparser.parse(thread_tag.select('span.first-post-time')[0].text).timestamp()
+                time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_time))
 
-            cache[id] = post_time
+                # Thread link
+                title_link_tag = thread_tag.select('a.topic_title_link')[0]
+                link = form_full_rfd_url(title_link_tag['href'])
+                title = title_link_tag.text.strip()
 
-            # Thread link
-            title_link_tag = thread_tag.select('a.topic_title_link')[0]
-            link = form_full_rfd_url(title_link_tag['href'])
-            title = title_link_tag.text.strip()
+                message = f"{time_str}: {title}"
+                message += "\n\n"
+                message += link
+                message += "\n\n"
 
-            message = f"{time_str}: {title}"
-            message += "\n\n"
-            message += link
-            message += "\n\n"
-
-            notify(message)
+                notify(message)
+                cache[id] = post_time
+            except:
+                pass
 finally:
     with open(FILE_NAME, 'w') as outfile:
         json.dump(cache, outfile)

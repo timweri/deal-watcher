@@ -31,23 +31,27 @@ try:
         for post in res['data']['children']:
             post_data = post['data']
             post_id = post_data['id']
-            post_created = int(post_data['created'])
-            if post_created < time.time() - TIME_WINDOW or post_id in cache:
-                continue
-            cache[post_id] = post_created
 
-            time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_created))
+            try:
+                post_created = int(post_data['created'])
+                if post_created < time.time() - TIME_WINDOW or post_id in cache:
+                    continue
 
-            title = post_data["title"]
-            permalink = post_data["permalink"]
-            reddit_link = f"https://reddit.com{permalink}"
+                time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_created))
 
-            message = f"{time_str}: {title}\n\n{reddit_link}"
+                title = post_data["title"]
+                permalink = post_data["permalink"]
+                reddit_link = f"https://reddit.com{permalink}"
 
-            if "url" in post_data:
-                message += "\n\n" + post_data["url"]
-            
-            notify(message)
+                message = f"{time_str}: {title}\n\n{reddit_link}"
+
+                if "url" in post_data:
+                    message += "\n\n" + post_data["url"]
+                
+                notify(message)
+                cache[post_id] = post_created
+            except:
+                pass
 finally:
     with open(FILE_NAME, 'w') as outfile:
         json.dump(cache, outfile)
