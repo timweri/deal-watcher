@@ -1,7 +1,15 @@
 from crontab import CronTab
+from dotenv import load_dotenv
+import os
 import time
 
-cron = CronTab(user='timweri')
+load_dotenv()
+
+TAB_FILE = os.environ['TAB_FILE']
+
+open(TAB_FILE, 'a').close()
+
+cron = CronTab(tabfile=TAB_FILE)
 cron.remove_all()
 fetch_reddit_job = cron.new(command="python fetch_reddit.py")
 fetch_reddit_job.minute.every(5)
