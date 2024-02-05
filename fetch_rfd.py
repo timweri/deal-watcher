@@ -51,6 +51,10 @@ try:
 
                 title = thread_tag.select('h3.topictitle')[0].text.strip().replace('\n', '')
 
+                if "Merged" in title:
+                    print(f"Skipping '{title}'")
+                    continue
+
                 message = f"{time_str}: {title}"
                 message += "\n\n"
                 message += link
