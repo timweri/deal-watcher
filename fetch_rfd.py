@@ -5,17 +5,20 @@ import dateutil.parser as dateutilparser
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from notify import notify
+import os
 
 load_dotenv()
 
 forums = ["https://forums.redflagdeals.com/hot-deals-f9/?st=0&rfd_sk=tt&sd=d"]
+DATA_FOLDER = os.environ['DATA']
 FILE_NAME = 'cache-rfd.json'
+file_path = os.path.join(DATA_FOLDER, FILE_NAME)
 
 def form_full_rfd_url(relative_path):
     return 'https://forums.redflagdeals.com' + relative_path
 
 try:
-    with open(FILE_NAME, 'r') as f:
+    with open(file_path, 'r') as f:
         cache = json.load(f)
 except:
     cache = {}
@@ -58,5 +61,5 @@ try:
             except:
                 pass
 finally:
-    with open(FILE_NAME, 'w') as outfile:
+    with open(file_path, 'w') as outfile:
         json.dump(cache, outfile)

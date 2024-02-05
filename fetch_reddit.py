@@ -11,11 +11,13 @@ TIME_WINDOW = int(os.getenv('TIME_WINDOW'))
 bapcsalescanada_url = "https://www.reddit.com/r/bapcsalescanada/new.json"
 canadianhardwareswap_url = "https://www.reddit.com/r/CanadianHardwareSwap/new.json"
 
+DATA_FOLDER = os.environ['DATA']
 FILE_NAME = 'cache.json'
+file_path = os.path.join(DATA_FOLDER, FILE_NAME)
 sites = [bapcsalescanada_url, canadianhardwareswap_url]
 
 try:
-    with open(FILE_NAME, 'r') as f:
+    with open(file_path, 'r') as f:
         cache = json.load(f)
 except:
     cache = {}
@@ -53,6 +55,6 @@ try:
             except:
                 pass
 finally:
-    with open(FILE_NAME, 'w') as outfile:
+    with open(file_path, 'w') as outfile:
         json.dump(cache, outfile)
 
