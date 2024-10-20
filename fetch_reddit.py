@@ -21,8 +21,9 @@ async def main():
     try:
         with open(file_path, 'r') as f:
             cache = json.load(f)
-    except:
+    except Exception as e:
         cache = {}
+        await notify(str(e))
 
     try:
         for site in sites:
@@ -54,8 +55,10 @@ async def main():
                     
                     await notify(message)
                     cache[post_id] = post_created
-                except:
-                    pass
+                except Exception as e:
+                    await notify(str(e))
+    except Exception as e:
+        await notify(str(e))
     finally:
         with open(file_path, 'w') as outfile:
             json.dump(cache, outfile)
