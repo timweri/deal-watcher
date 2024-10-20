@@ -18,7 +18,7 @@ fetch_rss_job = cron.new(command="python fetch_rfd.py")
 fetch_rss_job.minute.every(10)
 
 clear_job = cron.new(command="python clean.py")
-clear_job.minute.every(60)
+clear_job.minute.on(0)
 
 heartbeat_job = cron.new(command="python heartbeat.py")
 heartbeat_job.minute.on(0)
