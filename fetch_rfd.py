@@ -13,6 +13,7 @@ forums = ["https://forums.redflagdeals.com/hot-deals-f9/?st=0&rfd_sk=tt&sd=d"]
 DATA_FOLDER = os.environ['DATA']
 FILE_NAME = 'cache-rfd.json'
 file_path = os.path.join(DATA_FOLDER, FILE_NAME)
+HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
 def form_full_rfd_url(relative_path):
     return 'https://forums.redflagdeals.com' + relative_path
@@ -25,7 +26,7 @@ except:
 
 try:
     for forum in forums:
-        html_text = requests.get(forum).text
+        html_text = requests.get(forum, headers=HEADERS).text
         soup = BeautifulSoup(html_text, 'html.parser')
         soup = soup.select('ul.topiclist.topics.with_categories')[0]
 
