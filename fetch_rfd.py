@@ -32,11 +32,9 @@ async def main():
         for forum in forums:
             html_text = requests.get(forum, headers={'User-Agent': ua.random}).text
             soup = BeautifulSoup(html_text, 'html.parser')
-            soup = soup.select('ul.topiclist.topics.with_categories')[0]
+            soup = soup.select('ul.topics-cards.topics.with_categories')[0]
 
-            thread_tags = soup.select('li.topic')
-
-            print(thread_tags)
+            thread_tags = soup.select('li.topic-card')
 
             for thread_tag in thread_tags:
                 # Ignore sticky threads
@@ -54,10 +52,10 @@ async def main():
                     time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_time))
 
                     # Thread link
-                    title_link_tag = thread_tag.select('a.thread_title_link')[0]
+                    title_link_tag = thread_tag.select('a.topic-card-info.thread_info')[0]
                     link = form_full_rfd_url(title_link_tag['href'])
 
-                    title = title_link_tag.text.strip().replace('\n', '')
+                    title = thread_tag.select('h3.thread_title')[0].text.strip().replace('\n', '')
 
                     if "Merged" in title:
                         print(f"Skipping '{title}'")
