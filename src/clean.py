@@ -8,6 +8,7 @@ TIME_WINDOW = int(os.environ['TIME_WINDOW'])
 DATA_FOLDER = os.environ['DATA']
 FILE_NAMES = ['cache.json', 'cache-rfd.json']
 
+
 for file_name in FILE_NAMES:
     path = os.path.join(DATA_FOLDER, file_name)
     try:
@@ -20,6 +21,6 @@ for file_name in FILE_NAMES:
 
         with open(path, 'w') as outfile:
             json.dump(cache, outfile)
-    except:
+    except Exception:
         with open(path, 'w') as outfile:
             json.dump({}, outfile)

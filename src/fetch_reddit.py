@@ -27,7 +27,7 @@ async def main():
 
     try:
         for site in sites:
-            res = requests.get(site, headers = {'User-agent': 'your bot 0.1'})
+            res = requests.get(site, headers = {'User-agent': 'your bot 0.1'}, timeout=30)
             if not res:
                 continue
 
