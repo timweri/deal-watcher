@@ -28,15 +28,18 @@ async def main():
 
     try:
         for subreddit_name in subreddits:
-            res = requests.get(
-                ARCTIC_SHIFT_URL,
-                params={'subreddit': subreddit_name, 'limit': 25, 'sort': 'desc'},
-                headers=HEADERS,
-                timeout=30,
-            )
-            res.raise_for_status()
-            posts = res.json()['data']
-
+            try:
+                res = requests.get(
+                    ARCTIC_SHIFT_URL,
+                    params={'subreddit': subreddit_name, 'limit': 25, 'sort': 'desc'},
+                    headers=HEADERS,
+                    timeout=30,
+                )
+                res.raise_for_status()
+                posts = res.json().get('data') or []
+            except Exception as e:
+                await notify(f"Reddit ({subreddit_name}): {e}")
+                continue
             for post_data in posts:
                 post_id = post_data['id']
 
