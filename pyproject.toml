@@ -11,7 +11,7 @@ dependencies = [
     "feedparser==6.0.11",
     "python-crontab==3.2.0",
     "python-dateutil==2.9.0",
-    "python-dotenv==1.0.1",
+    "python-dotenv==1.2.2",
     "python-telegram-bot==21.6",
     "requests==2.33.0",
 ]
