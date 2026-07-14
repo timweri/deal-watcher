@@ -9,13 +9,14 @@ load_dotenv()
 
 TIME_WINDOW = int(os.getenv('TIME_WINDOW'))
 
-bapcsalescanada_url = "https://www.reddit.com/r/bapcsalescanada/new.json"
-canadianhardwareswap_url = "https://www.reddit.com/r/CanadianHardwareSwap/new.json"
+ARCTIC_SHIFT_URL = "https://arctic-shift.photon-reddit.com/api/posts/search"
+HEADERS = {'User-Agent': 'deal-watcher/1.0 (personal subreddit watcher)'}
+
+subreddits = ["bapcsalescanada", "CanadianHardwareSwap"]
 
 DATA_FOLDER = os.environ['DATA']
 FILE_NAME = 'cache.json'
 file_path = os.path.join(DATA_FOLDER, FILE_NAME)
-sites = [bapcsalescanada_url, canadianhardwareswap_url]
 
 async def main():
     try:
@@ -26,33 +27,34 @@ async def main():
         await notify(str(e))
 
     try:
-        for site in sites:
-            res = requests.get(site, headers = {'User-agent': 'your bot 0.1'}, timeout=30)
-            if not res:
-                continue
+        for subreddit_name in subreddits:
+            res = requests.get(
+                ARCTIC_SHIFT_URL,
+                params={'subreddit': subreddit_name, 'limit': 25, 'sort': 'desc'},
+                headers=HEADERS,
+                timeout=30,
+            )
+            res.raise_for_status()
+            posts = res.json()['data']
 
-            res = res.json()
-
-            for post in res['data']['children']:
-                post_data = post['data']
+            for post_data in posts:
                 post_id = post_data['id']
 
                 try:
-                    post_created = int(post_data['created'])
+                    post_created = int(post_data['created_utc'])
                     if post_created < time.time() - TIME_WINDOW or post_id in cache:
                         continue
 
                     time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_created))
 
-                    title = post_data["title"]
-                    permalink = post_data["permalink"]
-                    reddit_link = f"https://reddit.com{permalink}"
+                    title = post_data['title']
+                    reddit_link = f"https://reddit.com{post_data['permalink']}"
 
                     message = f"{time_str}: {title}\n\n{reddit_link}"
 
-                    if "url" in post_data:
-                        message += "\n\n" + post_data["url"]
-                    
+                    if not post_data.get('is_self') and post_data.get('url'):
+                        message += "\n\n" + post_data['url']
+
                     await notify(message)
                     cache[post_id] = post_created
                 except Exception as e:
