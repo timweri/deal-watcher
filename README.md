@@ -7,15 +7,15 @@ Also, there is a heartbeat cron job that would send the time periodically to ind
 
 ## How to run
 
-First, install the required Python package:
-```python3
-pip install -r requirements.txt
+First, install [uv](https://docs.astral.sh/uv/) and sync the dependencies:
+```sh
+uv sync
 ```
 
 Then, set up the environment by renaming file `.env-stump` to `.env`.
 Fill in your Telegram Chat Bot credentials.
 
 Then run the cron job:
-```python3
-python3 cron.py
+```sh
+uv run src/cron.py
 ```
