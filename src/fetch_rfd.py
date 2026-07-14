@@ -1,6 +1,8 @@
 import requests
 import time
 import json
+import hashlib
+import re
 import dateutil.parser as dateutilparser
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -17,8 +19,45 @@ FILE_NAME = 'cache-rfd.json'
 file_path = os.path.join(DATA_FOLDER, FILE_NAME)
 ua = UserAgent()
 
+POW_COOKIE_DOMAIN = '.redflagdeals.com'
+POW_MAX_ITERS = 10_000_000  # matches the site's own client-side bound
+
 def form_full_rfd_url(relative_path):
     return 'https://forums.redflagdeals.com' + relative_path
+
+def _parse_pow_field(html, key):
+    m = re.search(key + r":\s*'([^']*)'", html)
+    return m.group(1) if m else None
+
+def solve_pow_challenge(html):
+    """Return the `pow_bypass` cookie value for an RFD PoW challenge page, or None."""
+    if 'POW_CHALLENGE_DATA' not in html:
+        return None
+    nonce = _parse_pow_field(html, 'challenge_nonce')
+    hmac_ = _parse_pow_field(html, 'challenge_hmac')
+    difficulty = _parse_pow_field(html, 'difficulty')
+    dchar = _parse_pow_field(html, 'difficulty_char')
+    issued_at = _parse_pow_field(html, 'issued_at')
+    if not all([nonce, hmac_, difficulty, dchar, issued_at]):
+        return None
+    target = dchar * int(difficulty)
+    prefix = nonce + issued_at
+    for i in range(1, POW_MAX_ITERS):
+        digest = hashlib.sha256((prefix + str(i)).encode()).hexdigest()
+        if digest.startswith(target):
+            return f'{nonce}|{issued_at}|{i}|{digest}|{hmac_}'
+    return None
+
+def fetch_forum(session, url):
+    """Fetch a forum page, transparently clearing RFD's PoW anti-bot wall if present."""
+    text = session.get(url, timeout=30).text
+    if 'POW_CHALLENGE_DATA' not in text:
+        return text
+    cookie = solve_pow_challenge(text)
+    if cookie:
+        session.cookies.set('pow_bypass', cookie, domain=POW_COOKIE_DOMAIN, path='/')
+        text = session.get(url, timeout=30).text
+    return text
 
 async def main():
     try:
@@ -29,8 +68,10 @@ async def main():
         await notify(str(e))
 
     try:
+        session = requests.Session()
+        session.headers.update({'User-Agent': ua.random})
         for forum in forums:
-            html_text = requests.get(forum, headers={'User-Agent': ua.random}, timeout=30).text
+            html_text = fetch_forum(session, forum)
             soup = BeautifulSoup(html_text, 'html.parser')
             topics_list = soup.select_one('ul.topics-cards.topics.with_categories')
             if not topics_list:
