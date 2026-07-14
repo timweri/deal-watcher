@@ -63,7 +63,7 @@ async def main():
                 except Exception as e:
                     await notify(f"Reddit ({subreddit_name}) post {post_id}: {e}")
     except Exception as e:
-        await notify(str(e))
+        await notify(f"Reddit fetch error: {e}")
     finally:
         with open(file_path, 'w') as outfile:
             json.dump(cache, outfile)
