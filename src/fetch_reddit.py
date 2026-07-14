@@ -61,7 +61,7 @@ async def main():
                     await notify(message)
                     cache[post_id] = post_created
                 except Exception as e:
-                    await notify(str(e))
+                    await notify(f"Reddit ({subreddit_name}) post {post_id}: {e}")
     except Exception as e:
         await notify(str(e))
     finally:
