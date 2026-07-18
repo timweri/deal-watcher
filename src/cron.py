@@ -12,7 +12,7 @@ open(TAB_FILE, 'a').close()
 cron = CronTab(tabfile=TAB_FILE)
 cron.remove_all()
 fetch_reddit_job = cron.new(command="python fetch_reddit.py")
-fetch_reddit_job.minute.every(5)
+fetch_reddit_job.minute.every(15)
 
 fetch_rfd_job = cron.new(command="python fetch_rfd.py")
 fetch_rfd_job.minute.every(10)
