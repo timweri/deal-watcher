@@ -5,6 +5,7 @@ import os
 import random
 import asyncio
 from notify import notify
+from health import JobStatus
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -62,48 +63,52 @@ async def fetch_posts(subreddit_name):
             await asyncio.sleep(delay)
 
 async def main():
-    try:
-        with open(file_path, 'r') as f:
-            cache = json.load(f)
-    except Exception as e:
-        cache = {}
-        await notify(str(e))
+    with JobStatus('fetch_reddit') as status:
+        try:
+            with open(file_path, 'r') as f:
+                cache = json.load(f)
+        except Exception as e:
+            cache = {}
+            await notify(str(e))
 
-    try:
-        for idx, subreddit_name in enumerate(subreddits):
-            if idx > 0:
-                await asyncio.sleep(1)
-            try:
-                posts = await fetch_posts(subreddit_name)
-            except Exception as e:
-                await notify(f"Reddit ({subreddit_name}): {e}")
-                continue
-            for post_data in posts:
-                post_id = post_data['id']
-
+        try:
+            for idx, subreddit_name in enumerate(subreddits):
+                if idx > 0:
+                    await asyncio.sleep(1)
                 try:
-                    post_created = int(post_data['created_utc'])
-                    if post_created < time.time() - TIME_WINDOW or post_id in cache:
-                        continue
-
-                    time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_created))
-
-                    title = post_data['title']
-                    reddit_link = f"https://reddit.com{post_data['permalink']}"
-
-                    message = f"{time_str}: {title}\n\n{reddit_link}"
-
-                    if not post_data.get('is_self') and post_data.get('url'):
-                        message += "\n\n" + post_data['url']
-
-                    await notify(message)
-                    cache[post_id] = post_created
+                    posts = await fetch_posts(subreddit_name)
                 except Exception as e:
-                    await notify(f"Reddit ({subreddit_name}) post {post_id}: {e}")
-    except Exception as e:
-        await notify(f"Reddit fetch error: {e}")
-    finally:
-        with open(file_path, 'w') as outfile:
-            json.dump(cache, outfile)
+                    status.fail(f"Reddit ({subreddit_name}): {e}")
+                    await notify(f"Reddit ({subreddit_name}): {e}")
+                    continue
+                for post_data in posts:
+                    post_id = post_data['id']
+
+                    try:
+                        post_created = int(post_data['created_utc'])
+                        if post_created < time.time() - TIME_WINDOW or post_id in cache:
+                            continue
+
+                        time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_created))
+
+                        title = post_data['title']
+                        reddit_link = f"https://reddit.com{post_data['permalink']}"
+
+                        message = f"{time_str}: {title}\n\n{reddit_link}"
+
+                        if not post_data.get('is_self') and post_data.get('url'):
+                            message += "\n\n" + post_data['url']
+
+                        await notify(message)
+                        cache[post_id] = post_created
+                    except Exception as e:
+                        status.fail(f"Reddit ({subreddit_name}) post {post_id}: {e}")
+                        await notify(f"Reddit ({subreddit_name}) post {post_id}: {e}")
+        except Exception as e:
+            status.fail(f"Reddit fetch error: {e}")
+            await notify(f"Reddit fetch error: {e}")
+        finally:
+            with open(file_path, 'w') as outfile:
+                json.dump(cache, outfile)
 
 asyncio.run(main())

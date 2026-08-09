@@ -7,6 +7,7 @@ import dateutil.parser as dateutilparser
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from notify import notify
+from health import JobStatus
 import asyncio
 import os
 from fake_useragent import UserAgent
@@ -60,73 +61,77 @@ def fetch_forum(session, url):
     return text
 
 async def main():
-    try:
-        with open(file_path, 'r') as f:
-            cache = json.load(f)
-    except Exception as e:
-        cache = {}
-        await notify(str(e))
+    with JobStatus('fetch_rfd') as status:
+        try:
+            with open(file_path, 'r') as f:
+                cache = json.load(f)
+        except Exception as e:
+            cache = {}
+            await notify(str(e))
 
-    try:
-        session = requests.Session()
-        session.headers.update({'User-Agent': ua.random})
-        for forum in forums:
-            html_text = fetch_forum(session, forum)
-            soup = BeautifulSoup(html_text, 'html.parser')
-            topics_list = soup.select_one('ul.topics-cards.topics.with_categories')
-            if not topics_list:
-                await notify("RFD: could not find topics list container")
-                continue
-
-            thread_tags = topics_list.select('li.topic-card')
-
-            for thread_tag in thread_tags:
-                # Ignore sticky threads
-                if thread_tag.find(class_='sticky'):
+        try:
+            session = requests.Session()
+            session.headers.update({'User-Agent': ua.random})
+            for forum in forums:
+                html_text = fetch_forum(session, forum)
+                soup = BeautifulSoup(html_text, 'html.parser')
+                topics_list = soup.select_one('ul.topics-cards.topics.with_categories')
+                if not topics_list:
+                    status.fail("RFD: could not find topics list container")
+                    await notify("RFD: could not find topics list container")
                     continue
 
-                thread_id = thread_tag.get('data-thread-id')
-                if not thread_id or thread_id in cache:
-                    continue
+                thread_tags = topics_list.select('li.topic-card')
 
-                try:
-
-                    # Extract publish time
-                    time_tag = thread_tag.select_one('time')
-                    if not time_tag or not time_tag.get('datetime'):
-                        continue
-                    post_time = dateutilparser.parse(str(time_tag['datetime'])).timestamp()
-                    time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_time))
-
-                    # Thread link
-                    title_link_tag = thread_tag.select_one('a.topic-card-info.thread_info')
-                    if not title_link_tag:
-                        continue
-                    link = form_full_rfd_url(title_link_tag['href'])
-
-                    title_tag = thread_tag.select_one('h3.thread_title')
-                    if not title_tag:
-                        continue
-                    title = title_tag.text.strip().replace('\n', '')
-
-                    if "Merged" in title:
-                        print(f"Skipping '{title}'")
+                for thread_tag in thread_tags:
+                    # Ignore sticky threads
+                    if thread_tag.find(class_='sticky'):
                         continue
 
-                    message = f"{time_str}: {title}"
-                    message += "\n\n"
-                    message += link
-                    message += "\n\n"
+                    thread_id = thread_tag.get('data-thread-id')
+                    if not thread_id or thread_id in cache:
+                        continue
 
-                    await notify(message)
-                    cache[thread_id] = post_time
-                except Exception as e:
-                    await notify(f"RFD thread {thread_id}: {e}")
+                    try:
 
-    except Exception as e:
-        await notify(str(e))
-    finally:
-        with open(file_path, 'w') as outfile:
-            json.dump(cache, outfile)
+                        # Extract publish time
+                        time_tag = thread_tag.select_one('time')
+                        if not time_tag or not time_tag.get('datetime'):
+                            continue
+                        post_time = dateutilparser.parse(str(time_tag['datetime'])).timestamp()
+                        time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_time))
+
+                        # Thread link
+                        title_link_tag = thread_tag.select_one('a.topic-card-info.thread_info')
+                        if not title_link_tag:
+                            continue
+                        link = form_full_rfd_url(title_link_tag['href'])
+
+                        title_tag = thread_tag.select_one('h3.thread_title')
+                        if not title_tag:
+                            continue
+                        title = title_tag.text.strip().replace('\n', '')
+
+                        if "Merged" in title:
+                            print(f"Skipping '{title}'")
+                            continue
+
+                        message = f"{time_str}: {title}"
+                        message += "\n\n"
+                        message += link
+                        message += "\n\n"
+
+                        await notify(message)
+                        cache[thread_id] = post_time
+                    except Exception as e:
+                        status.fail(f"RFD thread {thread_id}: {e}")
+                        await notify(f"RFD thread {thread_id}: {e}")
+
+        except Exception as e:
+            status.fail(str(e))
+            await notify(str(e))
+        finally:
+            with open(file_path, 'w') as outfile:
+                json.dump(cache, outfile)
 
 asyncio.run(main())

@@ -12,4 +12,8 @@ RUN uv sync --locked --no-install-project
 
 COPY src/*.py ./
 
+# Default port for /healthz; if you override HEALTHZ_PORT at runtime, update
+# your published port mapping accordingly (EXPOSE is fixed at build time).
+EXPOSE 8080
+
 CMD [ "uv", "run", "cron.py"]
