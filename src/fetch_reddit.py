@@ -69,6 +69,7 @@ async def main():
                 cache = json.load(f)
         except Exception as e:
             cache = {}
+            status.fail(f"Reddit cache: {e}")
             await notify(str(e))
 
         try:
