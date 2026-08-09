@@ -1,4 +1,5 @@
 import telegram
+from telegram.error import RetryAfter
 from dotenv import load_dotenv
 import os
 import asyncio
@@ -15,6 +16,17 @@ def _get_bot():
         _bot = telegram.Bot(token=ACCESS_TOKEN)
     return _bot
 
-async def notify(message):
-    await _get_bot().send_message(CHAT_ID, text=message)
-    await asyncio.sleep(0.25)
+async def notify(message, parse_mode=None):
+    kwargs = {'text': message}
+    if parse_mode:
+        kwargs['parse_mode'] = parse_mode
+        kwargs['disable_web_page_preview'] = True
+    try:
+        try:
+            await _get_bot().send_message(CHAT_ID, **kwargs)
+        except RetryAfter as e:
+            await asyncio.sleep(e.retry_after)
+            await _get_bot().send_message(CHAT_ID, **kwargs)
+    except Exception as e:
+        print(f"notify: failed to send message: {e}")
+    await asyncio.sleep(1.0)

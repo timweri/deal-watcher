@@ -4,7 +4,10 @@ import json
 import os
 import random
 import asyncio
+import html
 from notify import notify
+from filters import keyword_allowed
+from status import report_error, report_ok
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -73,30 +76,43 @@ async def main():
         for idx, subreddit_name in enumerate(subreddits):
             if idx > 0:
                 await asyncio.sleep(1)
+            source = f"reddit:{subreddit_name}"
             try:
                 posts = await fetch_posts(subreddit_name)
             except Exception as e:
-                await notify(f"Reddit ({subreddit_name}): {e}")
+                await report_error(source, str(e))
                 continue
+            await report_ok(source)
+
+            fresh_posts = []
+            for p in posts:
+                try:
+                    if int(p['created_utc']) >= time.time() - TIME_WINDOW and p['id'] not in cache:
+                        fresh_posts.append(p)
+                except (KeyError, TypeError, ValueError) as e:
+                    await notify(f"Reddit ({subreddit_name}) post: {e}")
+            posts = fresh_posts
+            posts.sort(key=lambda p: p['created_utc'])
+
             for post_data in posts:
                 post_id = post_data['id']
 
                 try:
                     post_created = int(post_data['created_utc'])
-                    if post_created < time.time() - TIME_WINDOW or post_id in cache:
-                        continue
-
                     time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(post_created))
 
                     title = post_data['title']
+                    if not keyword_allowed(title):
+                        cache[post_id] = post_created
+                        continue
                     reddit_link = f"https://reddit.com{post_data['permalink']}"
 
-                    message = f"{time_str}: {title}\n\n{reddit_link}"
+                    message = f"{time_str}: <a href=\"{html.escape(reddit_link)}\">{html.escape(title)}</a>"
 
                     if not post_data.get('is_self') and post_data.get('url'):
-                        message += "\n\n" + post_data['url']
+                        message += "\n\n" + html.escape(post_data['url'])
 
-                    await notify(message)
+                    await notify(message, parse_mode='HTML')
                     cache[post_id] = post_created
                 except Exception as e:
                     await notify(f"Reddit ({subreddit_name}) post {post_id}: {e}")
@@ -106,4 +122,5 @@ async def main():
         with open(file_path, 'w') as outfile:
             json.dump(cache, outfile)
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
