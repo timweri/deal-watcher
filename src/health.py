@@ -2,11 +2,8 @@ import json
 import os
 import time
 
-DATA_FOLDER = os.environ['DATA']
-
-
 def _status_path(job_name):
-    return os.path.join(DATA_FOLDER, f'status-{job_name}.json')
+    return os.path.join(os.environ['DATA'], f'status-{job_name}.json')
 
 
 def write_status(job_name, ok, error=None):
