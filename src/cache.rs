@@ -34,6 +34,10 @@ impl SeenCache {
         self.entries.contains_key(id)
     }
 
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
     pub fn remember(&mut self, id: &str, created_at: i64) {
         self.entries.insert(id.to_string(), created_at);
     }

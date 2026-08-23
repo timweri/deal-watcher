@@ -43,6 +43,13 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let cfg = Arc::new(Config::load()?);
+    info!(
+        data = %cfg.data.display(),
+        time_window = cfg.time_window,
+        healthz_port = cfg.healthz_port,
+        "config loaded"
+    );
+
     let http_client = http::build_client();
     let notifier: Arc<dyn Notifier> = Arc::new(Telegram::new(
         cfg.telegram_access_token.clone(),
@@ -57,6 +64,11 @@ async fn main() -> anyhow::Result<()> {
 
     let reddit_cache = Arc::new(Mutex::new(SeenCache::load(&cfg.data, "cache.json")));
     let rfd_cache = Arc::new(Mutex::new(SeenCache::load(&cfg.data, "cache-rfd.json")));
+    info!(
+        reddit_seen = reddit_cache.lock().await.len(),
+        rfd_seen = rfd_cache.lock().await.len(),
+        "caches loaded"
+    );
 
     let scheduler = JobScheduler::new().await?;
 
@@ -129,6 +141,7 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     scheduler.start().await?;
+    info!("scheduler started: fetch_reddit, fetch_rfd, heartbeat");
 
     let router = health::router(registry);
     let listener = TcpListener::bind(("0.0.0.0", cfg.healthz_port)).await?;
