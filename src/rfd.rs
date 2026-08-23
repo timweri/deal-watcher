@@ -96,14 +96,18 @@ fn selector(css: &str) -> Selector {
     Selector::parse(css).expect("static selector is valid")
 }
 
-/// Parse a fetched hot-deals page into new-thread items. Sticky threads and
-/// threads whose title contains "Merged" are skipped, matching the site's
-/// own convention for merged/duplicate threads.
+/// Parse a fetched hot-deals page into new-thread items. Sticky threads,
+/// sponsored/advertorial placements, and threads whose title contains
+/// "Merged" are skipped, matching the site's own convention for
+/// merged/duplicate threads.
 fn parse_forum_page(html: &str) -> Vec<Item> {
     let doc = Html::parse_document(html);
     let list_sel = selector("ul.topics-cards.topics.with_categories");
     let card_sel = selector("li.topic-card");
     let sticky_sel = selector(".sticky");
+    // Sponsored campaigns are re-posted as brand new thread ids each time,
+    // so the seen-cache can never suppress them on its own — drop them here.
+    let sponsored_sel = selector(".sponsored-offer, .sponsored-badge");
     let time_sel = selector("time");
     let link_sel = selector("a.topic-card-info.thread_info");
     let title_sel = selector("h3.thread_title");
@@ -116,7 +120,9 @@ fn parse_forum_page(html: &str) -> Vec<Item> {
     let mut items = Vec::new();
 
     for card in list.select(&card_sel) {
-        if card.select(&sticky_sel).next().is_some() {
+        if card.select(&sticky_sel).next().is_some()
+            || card.select(&sponsored_sel).next().is_some()
+        {
             continue;
         }
 
@@ -212,12 +218,13 @@ mod tests {
     }
 
     #[test]
-    fn parses_threads_skipping_sticky_and_merged() {
+    fn parses_threads_skipping_sticky_merged_and_sponsored() {
         let html = fixture("rfd_hot_deals.html");
         let items = parse_forum_page(&html);
 
         assert!(items.iter().any(|i| i.id == "thread-1"));
         assert!(!items.iter().any(|i| i.id == "thread-sticky"));
         assert!(!items.iter().any(|i| i.id == "thread-merged"));
+        assert!(!items.iter().any(|i| i.id == "thread-sponsored"));
     }
 }
