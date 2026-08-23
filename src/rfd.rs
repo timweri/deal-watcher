@@ -120,8 +120,7 @@ fn parse_forum_page(html: &str) -> Vec<Item> {
     let mut items = Vec::new();
 
     for card in list.select(&card_sel) {
-        if card.select(&sticky_sel).next().is_some()
-            || card.select(&sponsored_sel).next().is_some()
+        if card.select(&sticky_sel).next().is_some() || card.select(&sponsored_sel).next().is_some()
         {
             continue;
         }
